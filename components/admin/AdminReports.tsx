@@ -88,20 +88,20 @@ const AdminReports: React.FC = () => {
 
     return (
         <div>
-            <div className="flex flex-wrap justify-between items-center gap-4 mb-6">
+            <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
                 <h2 className="text-3xl font-bold text-brand-light">Sales Reports</h2>
                  <button
                     onClick={handleExportCSV}
-                    className="flex items-center gap-2 bg-green-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+                    className="flex items-center justify-center gap-2 bg-green-600 text-white font-bold px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
                 >
                     <DownloadIcon className="w-5 h-5" />
                     Export to CSV
                 </button>
             </div>
             
-            <div className="bg-brand-secondary p-4 rounded-lg shadow-lg mb-6 flex flex-wrap items-center gap-4">
-                <div className="flex items-center gap-2">
-                    <label className="text-sm font-medium text-gray-300">Date:</label>
+            <div className="bg-brand-secondary p-4 rounded-lg shadow-lg mb-6 flex flex-col md:flex-row md:items-center gap-4">
+                <div className="flex flex-wrap items-center gap-2">
+                    <label className="text-sm font-medium text-gray-300 w-full md:w-auto">Date:</label>
                     <FilterButton filter="today" label="Today" />
                     <FilterButton filter="week" label="This Week" />
                     <FilterButton filter="month" label="This Month" />
@@ -142,7 +142,7 @@ const AdminReports: React.FC = () => {
                         <thead className="text-xs text-brand-light uppercase bg-brand-dark">
                             <tr>
                                 <th scope="col" className="px-6 py-3">Order ID</th>
-                                <th scope="col" className="px-6 py-3">Date</th>
+                                <th scope="col" className="px-6 py-3 min-w-[150px]">Date</th>
                                 <th scope="col" className="px-6 py-3">Branch</th>
                                 <th scope="col" className="px-6 py-3">Items</th>
                                 <th scope="col" className="px-6 py-3">Total</th>
@@ -152,8 +152,8 @@ const AdminReports: React.FC = () => {
                             {filteredOrders.map(order => (
                                 <tr key={order.id} className="border-b border-brand-dark hover:bg-brand-dark/50">
                                     <td className="px-6 py-4 font-medium text-white">#{order.id}</td>
-                                    <td className="px-6 py-4">{new Date(order.createdAt).toLocaleString()}</td>
-                                    <td className="px-6 py-4">{getBranchName(order.branchId)}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">{new Date(order.createdAt).toLocaleString()}</td>
+                                    <td className="px-6 py-4 whitespace-nowrap">{getBranchName(order.branchId)}</td>
                                     <td className="px-6 py-4">{order.items.length}</td>
                                     <td className="px-6 py-4 font-bold">{formatCurrency(order.total)}</td>
                                 </tr>

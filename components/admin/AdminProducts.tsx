@@ -28,11 +28,11 @@ const AdminProducts: React.FC = () => {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
                 <h2 className="text-3xl font-bold text-brand-light">Manage Products</h2>
                 <button
                     onClick={handleAddNew}
-                    className="flex items-center gap-2 bg-brand-primary text-white font-bold px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors"
+                    className="flex items-center justify-center gap-2 bg-brand-primary text-white font-bold px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors"
                 >
                     <PlusIcon className="w-5 h-5" />
                     Add Product
@@ -44,7 +44,7 @@ const AdminProducts: React.FC = () => {
                     <table className="w-full text-sm text-left text-gray-300">
                         <thead className="text-xs text-brand-light uppercase bg-brand-dark">
                             <tr>
-                                <th scope="col" className="px-6 py-3">Product</th>
+                                <th scope="col" className="px-6 py-3 min-w-[200px]">Product</th>
                                 <th scope="col" className="px-6 py-3">Category</th>
                                 <th scope="col" className="px-6 py-3">Price</th>
                                 <th scope="col" className="px-6 py-3">Stock</th>
@@ -63,7 +63,7 @@ const AdminProducts: React.FC = () => {
                                     <td className="px-6 py-4">{product.category}</td>
                                     <td className="px-6 py-4">{formatCurrency(product.price)}</td>
                                     <td className="px-6 py-4">{product.stock}</td>
-                                    <td className="px-6 py-4 text-right space-x-2">
+                                    <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
                                         <button onClick={() => handleEdit(product)} className="font-medium text-brand-primary hover:underline">Edit</button>
                                         <button onClick={() => deleteProduct(product.id)} className="font-medium text-red-500 hover:underline">Delete</button>
                                     </td>

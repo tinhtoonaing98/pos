@@ -6,6 +6,7 @@ import { TrashIcon } from './icons/TrashIcon';
 import { TagIcon } from './icons/TagIcon';
 import { XCircleIcon } from './icons/XCircleIcon';
 import { useCurrency } from '../hooks/useCurrency';
+import { ArrowLeftIcon } from './icons/ArrowLeftIcon';
 
 interface CartProps {
     sales: Sale[];
@@ -23,6 +24,8 @@ interface CartProps {
     onOpenDiscountModal: () => void;
     onRemoveDiscount: () => void;
     onEditItemNotes: (productId: number) => void;
+    isMobileView?: boolean;
+    onMobileClose?: () => void;
 }
 
 const Cart: React.FC<CartProps> = ({
@@ -40,13 +43,25 @@ const Cart: React.FC<CartProps> = ({
     total,
     onOpenDiscountModal,
     onRemoveDiscount,
-    onEditItemNotes
+    onEditItemNotes,
+    isMobileView = false,
+    onMobileClose
 }) => {
     const { formatCurrency } = useCurrency();
     const cartItems = activeSale?.items ?? [];
 
+    const cartHeight = isMobileView ? 'h-screen' : 'h-[calc(100vh-100px)]';
+
     return (
-        <div className="bg-brand-secondary rounded-lg shadow-lg p-4 flex flex-col h-[calc(100vh-100px)]">
+        <div className={`bg-brand-secondary rounded-lg shadow-lg p-4 flex flex-col ${cartHeight}`}>
+            {isMobileView && (
+                <div className="flex items-center mb-4">
+                    <button onClick={onMobileClose} className="text-brand-light p-2 mr-2">
+                        <ArrowLeftIcon className="w-6 h-6" />
+                    </button>
+                    <h2 className="text-xl font-bold text-brand-light">Current Order</h2>
+                </div>
+            )}
             <SaleTabs
                 sales={sales}
                 activeSaleId={activeSale.id}

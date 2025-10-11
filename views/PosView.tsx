@@ -10,9 +10,12 @@ import ReceiptModal from '../components/ReceiptModal';
 import ItemNotesModal from '../components/ItemNotesModal';
 import { generateProductDescription } from '../services/geminiService';
 import { useAppContext } from '../contexts/AppContext';
+import { ShoppingCartIcon } from '../components/icons/ShoppingCartIcon';
+import { useCurrency } from '../hooks/useCurrency';
 
 const PosView: React.FC = () => {
     const { products, categories, addOrder, currentUser } = useAppContext();
+    const { formatCurrency } = useCurrency();
 
     const [sales, setSales] = useState<Sale[]>([{ id: 1, name: 'Order 1', items: [], discountType: 'none', discountValue: 0 }]);
     const [activeSaleId, setActiveSaleId] = useState<number>(1);
@@ -22,6 +25,7 @@ const PosView: React.FC = () => {
     const [isSmartDescriptionModalOpen, setSmartDescriptionModalOpen] = useState(false);
     const [isDiscountModalOpen, setDiscountModalOpen] = useState(false);
     const [isNotesModalOpen, setNotesModalOpen] = useState(false);
+    const [isMobileCartOpen, setMobileCartOpen] = useState(false);
     const [editingItemId, setEditingItemId] = useState<number | null>(null);
 
     const [selectedProductForDescription, setSelectedProductForDescription] = useState<Product | null>(null);
@@ -214,6 +218,7 @@ const PosView: React.FC = () => {
         });
 
         setCheckoutModalOpen(false);
+        setMobileCartOpen(false);
         setCompletedOrder(newOrder);
     };
 
@@ -251,6 +256,7 @@ const PosView: React.FC = () => {
     };
 
     const editingItem = cartItems.find(item => item.product.id === editingItemId);
+    const totalItemsInCart = cartItems.reduce((acc, item) => acc + item.quantity, 0);
 
     return (
         <div className="min-h-screen bg-brand-dark text-brand-light font-sans">
@@ -269,7 +275,8 @@ const PosView: React.FC = () => {
                             onSearchChange={setSearchQuery}
                         />
                     </div>
-                    <div className="lg:w-2/5 xl:w-1/3 mt-4 lg:mt-0">
+                    {/* Tablet & Desktop Cart */}
+                    <div className="hidden lg:block lg:w-2/5 xl:w-1/3 mt-4 lg:mt-0">
                         <Cart
                             sales={sales}
                             activeSale={activeSale}
@@ -290,6 +297,47 @@ const PosView: React.FC = () => {
                     </div>
                 </div>
             </main>
+
+            {/* Mobile Cart (as a modal) */}
+            {isMobileCartOpen && (
+                 <div className="lg:hidden fixed inset-0 bg-brand-dark z-40">
+                    <Cart
+                        isMobileView={true}
+                        onMobileClose={() => setMobileCartOpen(false)}
+                        sales={sales}
+                        activeSale={activeSale}
+                        onUpdateQuantity={handleUpdateQuantity}
+                        onRemoveItem={handleRemoveFromCart}
+                        onCheckout={() => setCheckoutModalOpen(true)}
+                        onNewSale={handleNewSale}
+                        onSwitchSale={handleSwitchSale}
+                        onDeleteSale={handleDeleteSale}
+                        subtotal={subtotal}
+                        discountAmount={discountAmount}
+                        tax={tax}
+                        total={total}
+                        onOpenDiscountModal={() => setDiscountModalOpen(true)}
+                        onRemoveDiscount={handleRemoveDiscount}
+                        onEditItemNotes={handleOpenNotesModal}
+                    />
+                </div>
+            )}
+            
+            {/* Mobile "View Cart" Button */}
+            {totalItemsInCart > 0 && (
+                <div className="lg:hidden fixed bottom-4 right-4 z-30">
+                     <button
+                        onClick={() => setMobileCartOpen(true)}
+                        className="flex items-center gap-3 bg-brand-primary text-white font-bold px-5 py-3 rounded-full shadow-lg hover:bg-opacity-90 transition-transform hover:scale-105"
+                    >
+                        <ShoppingCartIcon className="w-6 h-6" />
+                        <div>
+                            <span>{totalItemsInCart} Item{totalItemsInCart > 1 ? 's' : ''}</span>
+                            <span className="ml-2 font-semibold">{formatCurrency(total)}</span>
+                        </div>
+                    </button>
+                </div>
+            )}
             
             <CheckoutModal
                 isOpen={isCheckoutModalOpen}

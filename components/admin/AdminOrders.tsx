@@ -22,31 +22,32 @@ const AdminOrders: React.FC = () => {
                         <thead className="text-xs text-brand-light uppercase bg-brand-dark">
                             <tr>
                                 <th scope="col" className="px-6 py-3">Order ID</th>
-                                <th scope="col" className="px-6 py-3">Date</th>
+                                <th scope="col" className="px-6 py-3 min-w-[150px]">Date</th>
                                 <th scope="col" className="px-6 py-3">Cashier</th>
-                                <th scope="col" className="px-6 py-3">Items</th>
+
                                 <th scope="col" className="px-6 py-3">Total</th>
-                                <th scope="col" className="px-6 py-3"></th>
+                                <th scope="col" className="px-6 py-3">Details</th>
                             </tr>
                         </thead>
                         <tbody>
                             {orders.map(order => (
                                 <React.Fragment key={order.id}>
-                                    <tr className="border-b border-brand-dark hover:bg-brand-dark/50 cursor-pointer" onClick={() => toggleOrderDetails(order.id)}>
+                                    <tr className="border-b border-brand-dark hover:bg-brand-dark/50">
                                         <td className="px-6 py-4 font-medium text-white">#{order.id}</td>
-                                        <td className="px-6 py-4">{new Date(order.createdAt).toLocaleString()}</td>
+                                        <td className="px-6 py-4 whitespace-nowrap">{new Date(order.createdAt).toLocaleString()}</td>
                                         <td className="px-6 py-4">{order.cashier}</td>
-                                        <td className="px-6 py-4">{order.items.length}</td>
                                         <td className="px-6 py-4 font-bold">{formatCurrency(order.total)}</td>
-                                        <td className="px-6 py-4 text-right">
-                                            <span className="text-xs text-brand-primary">{expandedOrderId === order.id ? 'Hide Details' : 'Show Details'}</span>
+                                        <td className="px-6 py-4">
+                                            <button onClick={() => toggleOrderDetails(order.id)} className="font-medium text-brand-primary hover:underline whitespace-nowrap">
+                                                {expandedOrderId === order.id ? 'Hide' : 'Show'}
+                                            </button>
                                         </td>
                                     </tr>
                                     {expandedOrderId === order.id && (
                                         <tr className="bg-brand-dark">
                                             <td colSpan={6} className="p-4">
                                                 <div className="p-4 bg-brand-secondary rounded-md">
-                                                    <h4 className="font-bold mb-2">Order #{order.id} Details</h4>
+                                                    <h4 className="font-bold mb-2">Order #{order.id} Details ({order.items.length} items)</h4>
                                                     <ul>
                                                         {order.items.map(item => (
                                                             <li key={item.productId} className="flex justify-between text-xs py-1 border-b border-brand-dark/50">
@@ -57,7 +58,7 @@ const AdminOrders: React.FC = () => {
                                                     </ul>
                                                     <div className="mt-2 pt-2 border-t border-brand-dark/50 text-xs space-y-1">
                                                         <p className="flex justify-between"><span>Subtotal:</span> <span>{formatCurrency(order.subtotal)}</span></p>
-                                                        <p className="flex justify-between"><span>Discount:</span> <span>-{formatCurrency(order.discountAmount)}</span></p>
+                                                        {order.discountAmount > 0 && <p className="flex justify-between"><span>Discount:</span> <span>-{formatCurrency(order.discountAmount)}</span></p>}
                                                          <p className="flex justify-between"><span>Tax:</span> <span>{formatCurrency(order.tax)}</span></p>
                                                         <p className="flex justify-between font-bold text-sm"><span>Total:</span> <span>{formatCurrency(order.total)}</span></p>
                                                     </div>

@@ -30,11 +30,11 @@ const AdminUsers: React.FC = () => {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
                 <h2 className="text-3xl font-bold text-brand-light">Manage Users</h2>
                 <button
                     onClick={handleAddNew}
-                    className="flex items-center gap-2 bg-brand-primary text-white font-bold px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors"
+                    className="flex items-center justify-center gap-2 bg-brand-primary text-white font-bold px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors"
                 >
                     <PlusIcon className="w-5 h-5" />
                     Add User
@@ -57,8 +57,8 @@ const AdminUsers: React.FC = () => {
                                 <tr key={user.id} className="border-b border-brand-dark hover:bg-brand-dark/50">
                                     <th scope="row" className="px-6 py-4 font-medium text-white whitespace-nowrap">{user.username}</th>
                                     <td className="px-6 py-4 capitalize">{user.role}</td>
-                                    <td className="px-6 py-4">{getBranchName(user.branchId)}</td>
-                                    <td className="px-6 py-4 text-right space-x-2">
+                                    <td className="px-6 py-4 whitespace-nowrap">{getBranchName(user.branchId)}</td>
+                                    <td className="px-6 py-4 text-right space-x-2 whitespace-nowrap">
                                         <button onClick={() => handleEdit(user)} className="font-medium text-brand-primary hover:underline">Edit</button>
                                         <button onClick={() => deleteUser(user.id)} className="font-medium text-red-500 hover:underline">Delete</button>
                                     </td>

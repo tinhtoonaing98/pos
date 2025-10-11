@@ -107,12 +107,12 @@ const AdminInventory: React.FC = () => {
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
+            <div className="flex flex-col md:flex-row justify-between md:items-center mb-6 gap-4">
                 <h2 className="text-3xl font-bold text-brand-light">Inventory Management</h2>
-                <div>
+                <div className="flex gap-2">
                      <input type="file" accept=".csv" ref={fileInputRef} onChange={handleImportCSV} className="hidden" />
-                     <button onClick={() => fileInputRef.current?.click()} className="bg-brand-dark text-brand-light font-bold px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors mr-2">Import CSV</button>
-                    <button onClick={handleExportCSV} className="bg-brand-primary text-white font-bold px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors">Export CSV</button>
+                     <button onClick={() => fileInputRef.current?.click()} className="flex-1 md:flex-none bg-brand-dark text-brand-light font-bold px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors">Import</button>
+                    <button onClick={handleExportCSV} className="flex-1 md:flex-none bg-brand-primary text-white font-bold px-4 py-2 rounded-lg hover:bg-opacity-90 transition-colors">Export</button>
                 </div>
             </div>
 
@@ -123,36 +123,38 @@ const AdminInventory: React.FC = () => {
 
             {activeView === 'levels' ? (
                 <div className="bg-brand-secondary rounded-lg shadow-lg overflow-hidden">
-                    <table className="w-full text-sm text-left text-gray-300">
-                        <thead className="text-xs text-brand-light uppercase bg-brand-dark">
-                            <tr>
-                                <th className="px-6 py-3">Product</th>
-                                <th className="px-6 py-3">Category</th>
-                                <th className="px-6 py-3">Stock</th>
-                                <th className="px-6 py-3">Threshold</th>
-                                <th className="px-6 py-3">Status</th>
-                                <th className="px-6 py-3 text-right">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {products.map(p => {
-                                const isLowStock = p.stock <= p.lowStockThreshold;
-                                return (
-                                <tr key={p.id} className="border-b border-brand-dark hover:bg-brand-dark/50">
-                                    <td className="px-6 py-4 font-medium text-white">{p.name}</td>
-                                    <td className="px-6 py-4">{p.category}</td>
-                                    <td className={`px-6 py-4 font-bold ${isLowStock ? 'text-red-400' : 'text-white'}`}>{p.stock}</td>
-                                    <td className="px-6 py-4">{p.lowStockThreshold}</td>
-                                    <td className="px-6 py-4">
-                                        {isLowStock ? <span className="text-xs font-bold bg-red-500/80 text-white px-2 py-1 rounded-full">Low Stock</span> : <span className="text-xs text-gray-400">OK</span>}
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button onClick={() => handleAdjustStock(p)} className="font-medium text-brand-primary hover:underline">Adjust Stock</button>
-                                    </td>
+                    <div className="overflow-x-auto">
+                        <table className="w-full text-sm text-left text-gray-300">
+                            <thead className="text-xs text-brand-light uppercase bg-brand-dark">
+                                <tr>
+                                    <th className="px-6 py-3 min-w-[200px]">Product</th>
+                                    <th className="px-6 py-3">Category</th>
+                                    <th className="px-6 py-3">Stock</th>
+                                    <th className="px-6 py-3">Threshold</th>
+                                    <th className="px-6 py-3">Status</th>
+                                    <th className="px-6 py-3 text-right">Actions</th>
                                 </tr>
-                            )})}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {products.map(p => {
+                                    const isLowStock = p.stock <= p.lowStockThreshold;
+                                    return (
+                                    <tr key={p.id} className="border-b border-brand-dark hover:bg-brand-dark/50">
+                                        <td className="px-6 py-4 font-medium text-white">{p.name}</td>
+                                        <td className="px-6 py-4">{p.category}</td>
+                                        <td className={`px-6 py-4 font-bold ${isLowStock ? 'text-red-400' : 'text-white'}`}>{p.stock}</td>
+                                        <td className="px-6 py-4">{p.lowStockThreshold}</td>
+                                        <td className="px-6 py-4">
+                                            {isLowStock ? <span className="text-xs font-bold bg-red-500/80 text-white px-2 py-1 rounded-full">Low Stock</span> : <span className="text-xs text-gray-400">OK</span>}
+                                        </td>
+                                        <td className="px-6 py-4 text-right whitespace-nowrap">
+                                            <button onClick={() => handleAdjustStock(p)} className="font-medium text-brand-primary hover:underline">Adjust Stock</button>
+                                        </td>
+                                    </tr>
+                                )})}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             ) : (
                 <div>
@@ -160,33 +162,35 @@ const AdminInventory: React.FC = () => {
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><SearchIcon className="w-5 h-5 text-gray-400" /></div>
                         <input type="text" value={logSearchQuery} onChange={(e) => setLogSearchQuery(e.target.value)} placeholder="Search logs..." className="w-full bg-brand-dark border border-brand-secondary text-brand-light placeholder-gray-400 text-sm rounded-lg focus:ring-brand-primary focus:border-brand-primary block pl-10 p-2.5 transition-colors" />
                     </div>
-                    <div className="bg-brand-secondary rounded-lg shadow-lg overflow-hidden max-h-[60vh] overflow-y-auto">
-                        <table className="w-full text-sm text-left text-gray-300">
-                             <thead className="text-xs text-brand-light uppercase bg-brand-dark sticky top-0">
-                                <tr>
-                                    <th className="px-6 py-3">Date</th>
-                                    <th className="px-6 py-3">Product</th>
-                                    <th className="px-6 py-3">Type</th>
-                                    <th className="px-6 py-3">Change</th>
-                                    <th className="px-6 py-3">New Stock</th>
-                                    <th className="px-6 py-3">Reason</th>
-                                    <th className="px-6 py-3">User</th>
-                                </tr>
-                            </thead>
-                             <tbody>
-                                {filteredLogs.map(log => (
-                                    <tr key={log.id} className="border-b border-brand-dark hover:bg-brand-dark/50">
-                                        <td className="px-6 py-4 text-xs">{new Date(log.createdAt).toLocaleString()}</td>
-                                        <td className="px-6 py-4 font-medium text-white">{log.productName}</td>
-                                        <td className="px-6 py-4"><span className="text-xs font-semibold capitalize bg-brand-dark px-2 py-1 rounded-full">{log.type.replace('adjustment-', '')}</span></td>
-                                        <td className={`px-6 py-4 font-bold ${log.quantityChange > 0 ? 'text-green-400' : 'text-red-400'}`}>{log.quantityChange > 0 ? '+' : ''}{log.quantityChange}</td>
-                                        <td className="px-6 py-4">{log.newStock}</td>
-                                        <td className="px-6 py-4 italic text-gray-400">{log.reason}</td>
-                                        <td className="px-6 py-4">{log.user}</td>
+                    <div className="bg-brand-secondary rounded-lg shadow-lg overflow-hidden">
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-sm text-left text-gray-300">
+                                <thead className="text-xs text-brand-light uppercase bg-brand-dark sticky top-0">
+                                    <tr>
+                                        <th className="px-6 py-3 min-w-[150px]">Date</th>
+                                        <th className="px-6 py-3 min-w-[150px]">Product</th>
+                                        <th className="px-6 py-3">Type</th>
+                                        <th className="px-6 py-3">Change</th>
+                                        <th className="px-6 py-3">New Stock</th>
+                                        <th className="px-6 py-3 min-w-[150px]">Reason</th>
+                                        <th className="px-6 py-3">User</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {filteredLogs.map(log => (
+                                        <tr key={log.id} className="border-b border-brand-dark hover:bg-brand-dark/50">
+                                            <td className="px-6 py-4 text-xs whitespace-nowrap">{new Date(log.createdAt).toLocaleString()}</td>
+                                            <td className="px-6 py-4 font-medium text-white">{log.productName}</td>
+                                            <td className="px-6 py-4"><span className="text-xs font-semibold capitalize bg-brand-dark px-2 py-1 rounded-full whitespace-nowrap">{log.type.replace('adjustment-', '')}</span></td>
+                                            <td className={`px-6 py-4 font-bold ${log.quantityChange > 0 ? 'text-green-400' : 'text-red-400'}`}>{log.quantityChange > 0 ? '+' : ''}{log.quantityChange}</td>
+                                            <td className="px-6 py-4">{log.newStock}</td>
+                                            <td className="px-6 py-4 italic text-gray-400">{log.reason}</td>
+                                            <td className="px-6 py-4">{log.user}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                          {filteredLogs.length === 0 && <p className="text-center text-gray-400 py-8">No logs found.</p>}
                     </div>
                 </div>

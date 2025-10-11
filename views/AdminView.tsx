@@ -13,6 +13,7 @@ type AdminPage = 'dashboard' | 'products' | 'orders' | 'inventory' | 'users' | '
 
 const AdminView: React.FC = () => {
     const [activePage, setActivePage] = useState<AdminPage>('dashboard');
+    const [isSidebarOpen, setSidebarOpen] = useState(false);
 
     const renderPage = () => {
         switch (activePage) {
@@ -37,29 +38,48 @@ const AdminView: React.FC = () => {
         { id: 'settings', label: 'Settings', icon: Cog6ToothIcon },
     ];
 
+    const handleNavItemClick = (page: AdminPage) => {
+        setActivePage(page);
+        if (isSidebarOpen) {
+            setSidebarOpen(false);
+        }
+    };
+
     return (
         <div className="min-h-screen bg-brand-dark text-brand-light font-sans">
-            <Header />
+            <Header onMenuClick={() => setSidebarOpen(!isSidebarOpen)} />
             <div className="flex">
-                <aside className="w-64 bg-brand-secondary p-4 h-[calc(100vh-68px)] sticky top-[68px]">
-                    <nav className="flex flex-col gap-2">
-                        {navItems.map(item => (
-                             <button
-                                key={item.id}
-                                onClick={() => setActivePage(item.id as AdminPage)}
-                                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
-                                    activePage === item.id 
-                                        ? 'bg-brand-primary text-white' 
-                                        : 'text-gray-300 hover:bg-brand-dark'
-                                }`}
-                            >
-                                <item.icon className="w-5 h-5" />
-                                <span>{item.label}</span>
-                            </button>
-                        ))}
-                    </nav>
+                {/* Overlay for mobile */}
+                {isSidebarOpen && (
+                    <div 
+                        className="fixed inset-0 bg-black bg-opacity-50 z-20 lg:hidden"
+                        onClick={() => setSidebarOpen(false)}
+                    ></div>
+                )}
+                <aside 
+                    className={`fixed lg:static top-0 left-0 w-64 bg-brand-secondary h-full lg:h-[calc(100vh-68px)] lg:sticky lg:top-[68px] z-30 transform transition-transform duration-300 ease-in-out
+                    ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0`}
+                >
+                     <div className="p-4">
+                        <nav className="flex flex-col gap-2">
+                            {navItems.map(item => (
+                                <button
+                                    key={item.id}
+                                    onClick={() => handleNavItemClick(item.id as AdminPage)}
+                                    className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-semibold transition-colors ${
+                                        activePage === item.id 
+                                            ? 'bg-brand-primary text-white' 
+                                            : 'text-gray-300 hover:bg-brand-dark'
+                                    }`}
+                                >
+                                    <item.icon className="w-5 h-5" />
+                                    <span>{item.label}</span>
+                                </button>
+                            ))}
+                        </nav>
+                    </div>
                 </aside>
-                <main className="flex-1 p-6 overflow-y-auto h-[calc(100vh-68px)]">
+                <main className="flex-1 p-4 md:p-6 overflow-y-auto h-[calc(100vh-68px)]">
                     {renderPage()}
                 </main>
             </div>
