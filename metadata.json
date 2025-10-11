@@ -1,0 +1,5 @@
+{
+  "name": "Android POS System",
+  "description": "A sleek, modern Point of Sale (POS) application designed for Android tablets, featuring a responsive touch-friendly interface, cart management, and an AI-powered smart product description generator using the Gemini API.",
+  "requestFramePermissions": []
+}
