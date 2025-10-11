@@ -1,200 +1,88 @@
-import React, { createContext, useState, useContext, ReactNode, useMemo, useEffect } from 'react';
-import type { User, Product, Order, StockLog, StockLogType, Branch, UserRole } from '../types';
-import { PRODUCTS as INITIAL_PRODUCTS, USERS as INITIAL_USERS, BRANCHES } from '../constants';
+import React, { createContext, useContext, useState, useMemo, ReactNode, useCallback, useEffect } from 'react';
+import type { Product, User, Order, OrderCreateDTO, ProductCreateDTO, UserCreateDTO, Branch, StockLog, Settings, Currency } from '../types';
+import { PRODUCTS, USERS, BRANCHES, CURRENCIES, DEFAULT_SETTINGS } from '../constants';
 
-type AdminView = 'pos' | 'admin';
+// Helper to get initial state from localStorage or use a default
+const getInitialState = <T,>(key: string, defaultValue: T): T => {
+    try {
+        const storedValue = localStorage.getItem(key);
+        if (storedValue) {
+            return JSON.parse(storedValue);
+        }
+    } catch (error) {
+        console.error(`Error reading from localStorage for key "${key}":`, error);
+    }
+    return defaultValue;
+};
+
 
 interface AppContextType {
+    // State
     currentUser: User | null;
+    adminView: 'pos' | 'admin';
+    products: Product[];
+    categories: string[];
+    orders: Order[];
+    users: User[];
+    branches: Branch[];
+    stockLogs: StockLog[];
+    settings: Settings;
+    currencies: Currency[];
+
+    // Actions
     login: (username: string, password: string) => boolean;
     logout: () => void;
+    setAdminView: (view: 'pos' | 'admin') => void;
     
-    products: Product[];
-    addProduct: (product: Omit<Product, 'id'>) => void;
+    addProduct: (productData: ProductCreateDTO) => void;
     updateProduct: (product: Product) => void;
     deleteProduct: (productId: number) => void;
+    bulkUpdateProducts: (products: Product[]) => void;
     
-    orders: Order[];
-    addOrder: (order: Omit<Order, 'id' | 'createdAt' | 'branchId'>) => Order;
+    addOrder: (orderData: Omit<OrderCreateDTO, 'branchId'>) => Order;
 
-    users: User[];
-    addUser: (userData: Omit<User, 'id'>) => void;
+    updateStock: (productId: number, quantityChange: number, type: StockLog['type'], reason: string) => boolean;
+    
+    addUser: (userData: UserCreateDTO) => void;
     updateUser: (user: User) => void;
     deleteUser: (userId: number) => void;
-
-    branches: Branch[];
-
-    categories: string[];
-    adminView: AdminView;
-    setAdminView: (view: AdminView) => void;
     
-    stockLogs: StockLog[];
-    updateStock: (productId: number, quantityChange: number, type: StockLogType, reason: string) => boolean;
-    bulkUpdateProducts: (updatedProducts: Product[]) => void;
+    updateSettings: (newSettings: Partial<Settings>) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-    const [currentUser, setCurrentUser] = useState<User | null>(null);
-    const [products, setProducts] = useState<Product[]>(INITIAL_PRODUCTS);
-    const [orders, setOrders] = useState<Order[]>([]);
-    const [users, setUsers] = useState<User[]>(INITIAL_USERS);
-    const [branches] = useState<Branch[]>(BRANCHES);
-    const [adminView, setAdminView] = useState<AdminView>('pos');
-    const [stockLogs, setStockLogs] = useState<StockLog[]>([]);
+    const [currentUser, setCurrentUser] = useState<User | null>(() => getInitialState('currentUser', null));
+    const [adminView, setAdminView] = useState<'pos' | 'admin'>('pos');
+    
+    const [products, setProducts] = useState<Product[]>(() => getInitialState('products', PRODUCTS));
+    const [users, setUsers] = useState<User[]>(() => getInitialState('users', USERS));
+    const [orders, setOrders] = useState<Order[]>(() => getInitialState('orders', []));
+    const [stockLogs, setStockLogs] = useState<StockLog[]>(() => getInitialState('stockLogs', []));
+    const [settings, setSettings] = useState<Settings>(() => getInitialState('settings', DEFAULT_SETTINGS));
 
-    useEffect(() => {
-        const initialLogs: StockLog[] = INITIAL_PRODUCTS.map(p => ({
-            id: `initial-${p.id}`,
-            productId: p.id,
-            productName: p.name,
-            type: 'initial',
-            quantityChange: p.stock,
-            newStock: p.stock,
-            reason: 'Initial stock load',
-            createdAt: new Date(),
-            user: 'System',
-        }));
-        setStockLogs(initialLogs);
-    }, []);
+    // Effects to save state to localStorage on change
+    useEffect(() => { localStorage.setItem('currentUser', JSON.stringify(currentUser)); }, [currentUser]);
+    useEffect(() => { localStorage.setItem('products', JSON.stringify(products)); }, [products]);
+    useEffect(() => { localStorage.setItem('users', JSON.stringify(users)); }, [users]);
+    useEffect(() => { localStorage.setItem('orders', JSON.stringify(orders)); }, [orders]);
+    useEffect(() => { localStorage.setItem('stockLogs', JSON.stringify(stockLogs)); }, [stockLogs]);
+    useEffect(() => { localStorage.setItem('settings', JSON.stringify(settings)); }, [settings]);
 
 
-    const login = (username: string, password: string): boolean => {
+    const login = useCallback((username: string, password: string): boolean => {
         const user = users.find(u => u.username === username && u.password === password);
         if (user) {
             setCurrentUser(user);
-            if (user.role !== 'admin' && user.role !== 'manager') {
-                setAdminView('pos');
-            }
+            setAdminView('pos');
             return true;
         }
         return false;
-    };
+    }, [users]);
 
     const logout = () => {
         setCurrentUser(null);
-    };
-    
-    // User Management
-    const addUser = (userData: Omit<User, 'id'>) => {
-        setUsers(prev => {
-            const newId = Math.max(0, ...prev.map(u => u.id)) + 1;
-            const newUser: User = { ...userData, id: newId };
-            return [...prev, newUser];
-        });
-    };
-
-    const updateUser = (updatedUser: User) => {
-        setUsers(prev => prev.map(u => u.id === updatedUser.id ? updatedUser : u));
-    };
-
-    const deleteUser = (userId: number) => {
-        // Prevent deleting the last admin
-        const userToDelete = users.find(u => u.id === userId);
-        const adminCount = users.filter(u => u.role === 'admin').length;
-        if (userToDelete?.role === 'admin' && adminCount <= 1) {
-            alert("Cannot delete the last administrator.");
-            return;
-        }
-        setUsers(prev => prev.filter(u => u.id !== userId));
-    };
-
-
-    const updateStock = (productId: number, quantityChange: number, type: StockLogType, reason: string): boolean => {
-        let success = false;
-        setProducts(prevProducts => {
-            const productIndex = prevProducts.findIndex(p => p.id === productId);
-            if (productIndex === -1) return prevProducts;
-
-            const product = prevProducts[productIndex];
-            const newStock = product.stock + quantityChange;
-            if (newStock < 0) {
-                 console.warn(`Attempted to adjust stock for ${product.name} to a negative value.`);
-                 return prevProducts;
-            }
-            
-            const updatedProduct = { ...product, stock: newStock };
-            const newProducts = [...prevProducts];
-            newProducts[productIndex] = updatedProduct;
-
-            const newLog: StockLog = {
-                id: new Date().toISOString(),
-                productId,
-                productName: product.name,
-                type,
-                quantityChange,
-                newStock,
-                reason,
-                createdAt: new Date(),
-                user: currentUser?.username ?? 'System',
-            };
-            setStockLogs(prev => [newLog, ...prev]);
-            success = true;
-            return newProducts;
-        });
-        return success;
-    };
-
-
-    const addProduct = (productData: Omit<Product, 'id'>) => {
-        setProducts(prev => {
-            const newId = Math.max(0, ...prev.map(p => p.id)) + 1;
-            const newProduct: Product = { ...productData, id: newId };
-            return [...prev, newProduct];
-        });
-    };
-    
-    const updateProduct = (updatedProduct: Product) => {
-        setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
-    };
-
-    const deleteProduct = (productId: number) => {
-        setProducts(prev => prev.filter(p => p.id !== productId));
-    };
-
-    const addOrder = (orderData: Omit<Order, 'id' | 'createdAt' | 'branchId'>): Order => {
-        if (!currentUser) throw new Error("No user logged in to create an order.");
-        const newOrder: Order = {
-            ...orderData,
-            id: new Date().toISOString(),
-            createdAt: new Date(),
-            branchId: currentUser.branchId,
-        };
-        setOrders(prev => [newOrder, ...prev]);
-
-        newOrder.items.forEach(item => {
-            updateStock(item.productId, -item.quantity, 'sale', `Order #${newOrder.id.substring(0, 8)}`);
-        });
-
-        return newOrder;
-    };
-
-    const bulkUpdateProducts = (updatedProducts: Product[]) => {
-        const productMap = new Map(products.map(p => [p.id, p]));
-        const logs: StockLog[] = [];
-        
-        updatedProducts.forEach(p => {
-            const existingProduct = productMap.get(p.id);
-            if (existingProduct && existingProduct.stock !== p.stock) {
-                 logs.push({
-                    id: `${new Date().toISOString()}-${p.id}`,
-                    productId: p.id,
-                    productName: p.name,
-                    type: 'import',
-                    quantityChange: p.stock - existingProduct.stock,
-                    newStock: p.stock,
-                    reason: 'CSV bulk import',
-                    createdAt: new Date(),
-                    user: currentUser?.username ?? 'System',
-                });
-            }
-        });
-        
-        setProducts(updatedProducts);
-        if (logs.length > 0) {
-            setStockLogs(prev => [...logs.reverse(), ...prev]);
-        }
     };
 
     const categories = useMemo(() => {
@@ -202,35 +90,116 @@ export const AppProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         return ['All', ...Array.from(new Set(allCategories))];
     }, [products]);
 
+    const addProduct = (productData: ProductCreateDTO) => {
+        setProducts(prev => [
+            ...prev,
+            { ...productData, id: Date.now() }
+        ]);
+    };
 
-    const value = {
+    const updateProduct = (updatedProduct: Product) => {
+        setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
+    };
+    
+    const deleteProduct = (productId: number) => {
+        setProducts(prev => prev.filter(p => p.id !== productId));
+    };
+
+    const bulkUpdateProducts = (updatedProducts: Product[]) => {
+        setProducts(updatedProducts);
+    }
+    
+    const updateStock = useCallback((productId: number, quantityChange: number, type: StockLog['type'], reason: string): boolean => {
+        const product = products.find(p => p.id === productId);
+        if (!product) return false;
+        
+        const newStock = product.stock + quantityChange;
+        if (newStock < 0) return false;
+
+        const newLog: StockLog = {
+            id: Date.now(),
+            productId,
+            productName: product.name,
+            quantityChange,
+            newStock,
+            reason,
+            type,
+            user: currentUser?.username ?? 'System',
+            createdAt: new Date().toISOString()
+        };
+        
+        setStockLogs(prev => [newLog, ...prev]);
+        setProducts(prev => prev.map(p => p.id === productId ? { ...p, stock: newStock } : p));
+        return true;
+    }, [products, currentUser]);
+    
+    const addOrder = (orderData: Omit<OrderCreateDTO, 'branchId'>): Order => {
+        const newOrder: Order = {
+            ...orderData,
+            id: Date.now(),
+            createdAt: new Date().toISOString(),
+            branchId: currentUser?.branchId ?? 0
+        };
+        setOrders(prev => [newOrder, ...prev]);
+        
+        orderData.items.forEach(item => {
+            updateStock(item.productId, -item.quantity, 'sale', `Sale #${newOrder.id}`);
+        });
+        
+        return newOrder;
+    };
+
+    const addUser = (userData: UserCreateDTO) => {
+        setUsers(prev => [...prev, { ...userData, id: Date.now() }]);
+    };
+    
+    const updateUser = (updatedUser: User) => {
+        setUsers(prev => prev.map(u => u.id === updatedUser.id ? { ...u, ...updatedUser } : u));
+    };
+
+    const deleteUser = (userId: number) => {
+        const userToDelete = users.find(u => u.id === userId);
+        const isAdmin = userToDelete?.role === 'admin';
+        const lastAdmin = users.filter(u => u.role === 'admin').length === 1;
+
+        if (isAdmin && lastAdmin) {
+            alert("Cannot delete the last administrator.");
+            return;
+        }
+        setUsers(prev => prev.filter(u => u.id !== userId));
+    };
+
+    const updateSettings = (newSettings: Partial<Settings>) => {
+        setSettings(prev => ({...prev, ...newSettings}));
+    };
+    
+    const value: AppContextType = {
         currentUser,
+        adminView,
+        products,
+        categories,
+        orders,
+        users,
+        branches: BRANCHES,
+        stockLogs,
+        settings,
+        currencies: CURRENCIES,
         login,
         logout,
-        products,
+        setAdminView,
         addProduct,
         updateProduct,
         deleteProduct,
-        orders,
+        bulkUpdateProducts,
         addOrder,
-        users,
+        updateStock,
         addUser,
         updateUser,
         deleteUser,
-        branches,
-        categories,
-        adminView,
-        setAdminView,
-        stockLogs,
-        updateStock,
-        bulkUpdateProducts,
+        updateSettings,
     };
 
-    return (
-        <AppContext.Provider value={value}>
-            {children}
-        </AppContext.Provider>
-    );
+    return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
 export const useAppContext = (): AppContextType => {

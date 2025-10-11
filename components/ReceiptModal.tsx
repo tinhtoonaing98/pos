@@ -1,107 +1,68 @@
 import React from 'react';
 import type { Order } from '../types';
+import { useCurrency } from '../hooks/useCurrency';
+import { useAppContext } from '../contexts/AppContext';
 
 interface ReceiptModalProps {
     isOpen: boolean;
     onClose: () => void;
     order: Order | null;
-    isReprint?: boolean;
 }
 
-const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, order, isReprint = false }) => {
-    if (!isOpen || !order) return null;
+const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, order }) => {
+    const { branches } = useAppContext();
+    const { formatCurrency } = useCurrency();
     
-    const handlePrint = () => {
-        window.print();
-    };
+    if (!isOpen || !order) return null;
+
+    const currentBranch = branches[0]; // Assuming first branch for simplicity
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-50 p-4 print:bg-white print:text-black">
-            <div className="bg-brand-secondary rounded-lg shadow-2xl p-6 w-full max-w-sm print:shadow-none print:rounded-none print:p-0 print:bg-white">
-                <div id="receipt-content">
-                    <h2 className="text-2xl font-bold text-brand-primary mb-2 text-center print:text-black">
-                        {isReprint ? 'Order Receipt' : 'Payment Successful!'}
-                    </h2>
-                    <p className="text-center text-gray-400 mb-4 print:text-gray-600">Thank you for your order.</p>
-
-                    <div className="bg-brand-dark p-4 rounded-lg text-brand-light print:bg-gray-100 print:text-black print:rounded-none">
-                        <div className="text-xs text-gray-400 print:text-gray-600 mb-2">
-                            <p>Order ID: {order.id}</p>
-                            <p>Date: {new Date(order.createdAt).toLocaleString()}</p>
-                            <p>Cashier: {order.cashier}</p>
-                            <p>Payment: {order.paymentMethod}</p>
-                        </div>
-
-                        <div className="border-t border-b border-brand-secondary my-2 py-2 space-y-2 text-sm">
-                            {order.items.map((item, index) => (
-                                <div key={index}>
-                                    <div className="flex justify-between">
-                                        <span>{item.quantity} x {item.productName}</span>
-                                        <span>${(item.quantity * item.price).toFixed(2)}</span>
-                                    </div>
-                                    {item.notes && (
-                                        <p className="text-xs text-gray-400 pl-4 print:text-gray-500"> - Note: {item.notes}</p>
-                                    )}
-                                </div>
-                            ))}
-                        </div>
-
-                        <div className="space-y-1 text-sm mt-2">
-                            <div className="flex justify-between">
-                                <span>Subtotal</span>
-                                <span>${order.subtotal.toFixed(2)}</span>
-                            </div>
-                            {order.discountAmount > 0 && (
-                                <div className="flex justify-between text-green-400 print:text-green-600">
-                                    <span>Discount</span>
-                                    <span>-${order.discountAmount.toFixed(2)}</span>
-                                </div>
-                            )}
-                            <div className="flex justify-between">
-                                <span>Tax (8%)</span>
-                                <span>${order.tax.toFixed(2)}</span>
-                            </div>
-                            <div className="flex justify-between font-bold text-lg border-t border-brand-secondary pt-2 mt-2">
-                                <span>Total Paid</span>
-                                <span>${order.total.toFixed(2)}</span>
-                            </div>
-                        </div>
-                    </div>
+        <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg shadow-2xl p-6 w-full max-w-sm text-gray-800 font-mono">
+                <div className="text-center mb-4">
+                    <h2 className="text-xl font-bold">{currentBranch.name}</h2>
+                    <p className="text-xs">{currentBranch.location}</p>
+                    <p className="text-xs">Date: {new Date(order.createdAt).toLocaleString()}</p>
+                    <p className="text-xs">Order #: {order.id}</p>
+                    <p className="text-xs">Cashier: {order.cashier}</p>
                 </div>
 
-                <div className="flex gap-4 mt-6 print:hidden">
-                    <button
-                        onClick={handlePrint}
-                        className="w-full bg-brand-dark text-gray-300 font-bold py-3 rounded-lg hover:bg-opacity-80 transition-colors"
-                    >
+                <div className="border-t border-b border-dashed border-gray-400 py-2">
+                    {order.items.map(item => (
+                         <div key={item.productId} className="flex justify-between text-sm mb-1">
+                            <div>
+                                <p>{item.productName}</p>
+                                <p className="text-xs pl-2">{item.quantity} @ {formatCurrency(item.price)}</p>
+                            </div>
+                            <span>{formatCurrency(item.quantity * item.price)}</span>
+                        </div>
+                    ))}
+                </div>
+
+                <div className="py-2 text-sm space-y-1">
+                    <div className="flex justify-between"><span>Subtotal</span><span>{formatCurrency(order.subtotal)}</span></div>
+                    {order.discountAmount > 0 && <div className="flex justify-between"><span>Discount</span><span>-{formatCurrency(order.discountAmount)}</span></div>}
+                    <div className="flex justify-between"><span>Tax</span><span>{formatCurrency(order.tax)}</span></div>
+                </div>
+
+                <div className="border-t border-dashed border-gray-400 pt-2 text-lg font-bold flex justify-between">
+                    <span>TOTAL</span>
+                    <span>{formatCurrency(order.total)}</span>
+                </div>
+                <p className="text-sm text-center mt-1">Paid with: {order.paymentMethod}</p>
+
+                <p className="text-center text-sm mt-4">Thank you for your visit!</p>
+                
+                <div className="flex gap-4 mt-6">
+                    <button onClick={onClose} className="w-full bg-gray-600 text-white font-bold py-3 rounded-lg hover:bg-gray-700 transition-colors">
+                        Close
+                    </button>
+                     <button onClick={() => window.print()} className="w-full bg-blue-600 text-white font-bold py-3 rounded-lg hover:bg-blue-700 transition-colors">
                         Print
                     </button>
-                    <button
-                        onClick={onClose}
-                        className="w-full bg-brand-primary text-white font-bold py-3 rounded-lg hover:bg-opacity-90 transition-colors"
-                    >
-                        {isReprint ? 'Close' : 'New Order'}
-                    </button>
                 </div>
-                <style>{`
-                    @media print {
-                        body * {
-                            visibility: hidden;
-                        }
-                        .fixed.inset-0, .fixed.inset-0 > div {
-                            position: static !important;
-                        }
-                        #receipt-content, #receipt-content * {
-                            visibility: visible;
-                        }
-                        #receipt-content {
-                            position: absolute;
-                            left: 0;
-                            top: 0;
-                            width: 100%;
-                        }
-                    }
-                `}</style>
+                 <style>{`@media print { body * { visibility: hidden; } .receipt-modal, .receipt-modal * { visibility: visible; } .receipt-modal { position: absolute; left: 0; top: 0; } .no-print { display: none; } }`}</style>
             </div>
         </div>
     );

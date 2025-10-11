@@ -1,35 +1,27 @@
 export interface Product {
-  id: number;
-  name: string;
-  price: number;
-  category: string;
-  imageUrl: string;
-  stock: number;
-  lowStockThreshold: number;
+    id: number;
+    name: string;
+    category: string;
+    price: number;
+    stock: number;
+    imageUrl: string;
+    lowStockThreshold: number;
 }
 
+export type ProductCreateDTO = Omit<Product, 'id'>;
+
 export interface CartItem {
-  product: Product;
-  quantity: number;
-  notes?: string;
+    product: Product;
+    quantity: number;
+    notes: string;
 }
 
 export interface Sale {
-  id: number;
-  name: string;
-  items: CartItem[];
-  discountType: 'none' | 'percentage' | 'fixed';
-  discountValue: number;
-}
-
-export type UserRole = 'admin' | 'manager' | 'cashier' | 'staff';
-
-export interface User {
-  id: number;
-  username: string;
-  password: string; // In a real app, this would be a hash
-  role: UserRole;
-  branchId: number;
+    id: number;
+    name: string;
+    items: CartItem[];
+    discountType: 'none' | 'percentage' | 'fixed';
+    discountValue: number;
 }
 
 export interface OrderItem {
@@ -37,38 +29,61 @@ export interface OrderItem {
     productName: string;
     quantity: number;
     price: number;
-    notes?: string;
+    notes: string;
 }
 
 export interface Order {
-    id: string;
+    id: number;
+    createdAt: string;
     items: OrderItem[];
     subtotal: number;
     discountAmount: number;
     tax: number;
     total: number;
-    createdAt: Date;
     paymentMethod: string;
     cashier: string;
     branchId: number;
 }
 
-export type StockLogType = 'initial' | 'sale' | 'adjustment-add' | 'adjustment-remove' | 'import';
+export type OrderCreateDTO = Omit<Order, 'id' | 'createdAt'>;
+
+export type UserRole = 'admin' | 'manager' | 'cashier' | 'staff';
+
+export interface User {
+    id: number;
+    username: string;
+    password?: string;
+    role: UserRole;
+    branchId: number;
+}
+
+export type UserCreateDTO = Omit<User, 'id'>;
+
+
+export interface Branch {
+    id: number;
+    name: string;
+    location: string;
+}
 
 export interface StockLog {
-    id: string;
+    id: number;
     productId: number;
     productName: string;
-    type: StockLogType;
     quantityChange: number;
     newStock: number;
     reason: string;
-    createdAt: Date;
+    type: 'sale' | 'adjustment-add' | 'adjustment-remove' | 'initial';
     user: string;
+    createdAt: string;
 }
 
-export interface Branch {
-  id: number;
-  name: string;
-  location: string;
+export interface Currency {
+    code: string; // e.g., 'USD'
+    symbol: string; // e.g., '$'
+    name: string; // e.g., 'United States Dollar'
+}
+
+export interface Settings {
+    currencyCode: string; // e.g., 'USD'
 }

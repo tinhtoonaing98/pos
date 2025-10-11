@@ -3,10 +3,11 @@ import { useAppContext } from '../../contexts/AppContext';
 import type { Product } from '../../types';
 import ProductFormModal from './ProductFormModal';
 import { PlusIcon } from '../icons/PlusIcon';
-import { TrashIcon } from '../icons/TrashIcon';
+import { useCurrency } from '../../hooks/useCurrency';
 
 const AdminProducts: React.FC = () => {
     const { products, deleteProduct } = useAppContext();
+    const { formatCurrency } = useCurrency();
     const [isModalOpen, setModalOpen] = useState(false);
     const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
@@ -19,7 +20,7 @@ const AdminProducts: React.FC = () => {
         setEditingProduct(null);
         setModalOpen(true);
     };
-
+    
     const handleCloseModal = () => {
         setModalOpen(false);
         setEditingProduct(null);
@@ -43,7 +44,7 @@ const AdminProducts: React.FC = () => {
                     <table className="w-full text-sm text-left text-gray-300">
                         <thead className="text-xs text-brand-light uppercase bg-brand-dark">
                             <tr>
-                                <th scope="col" className="px-6 py-3">Product Name</th>
+                                <th scope="col" className="px-6 py-3">Product</th>
                                 <th scope="col" className="px-6 py-3">Category</th>
                                 <th scope="col" className="px-6 py-3">Price</th>
                                 <th scope="col" className="px-6 py-3">Stock</th>
@@ -53,15 +54,18 @@ const AdminProducts: React.FC = () => {
                         <tbody>
                             {products.map(product => (
                                 <tr key={product.id} className="border-b border-brand-dark hover:bg-brand-dark/50">
-                                    <th scope="row" className="px-6 py-4 font-medium text-white whitespace-nowrap">{product.name}</th>
+                                    <th scope="row" className="px-6 py-4 font-medium text-white whitespace-nowrap">
+                                        <div className="flex items-center gap-3">
+                                            <img src={product.imageUrl} alt={product.name} className="w-10 h-10 rounded-md object-cover" />
+                                            <span>{product.name}</span>
+                                        </div>
+                                    </th>
                                     <td className="px-6 py-4">{product.category}</td>
-                                    <td className="px-6 py-4">${product.price.toFixed(2)}</td>
+                                    <td className="px-6 py-4">{formatCurrency(product.price)}</td>
                                     <td className="px-6 py-4">{product.stock}</td>
                                     <td className="px-6 py-4 text-right space-x-2">
                                         <button onClick={() => handleEdit(product)} className="font-medium text-brand-primary hover:underline">Edit</button>
-                                        <button onClick={() => deleteProduct(product.id)} className="font-medium text-red-500 hover:underline">
-                                           Delete
-                                        </button>
+                                        <button onClick={() => deleteProduct(product.id)} className="font-medium text-red-500 hover:underline">Delete</button>
                                     </td>
                                 </tr>
                             ))}
@@ -70,7 +74,7 @@ const AdminProducts: React.FC = () => {
                 </div>
             </div>
 
-            <ProductFormModal
+            <ProductFormModal 
                 isOpen={isModalOpen}
                 onClose={handleCloseModal}
                 product={editingProduct}

@@ -1,50 +1,53 @@
-
 import React from 'react';
 import type { CartItem as CartItemType } from '../types';
-import { PlusIcon } from './icons/PlusIcon';
 import { MinusIcon } from './icons/MinusIcon';
+import { PlusIcon } from './icons/PlusIcon';
+import { TrashIcon } from './icons/TrashIcon';
 import { NoteIcon } from './icons/NoteIcon';
+import { useCurrency } from '../hooks/useCurrency';
 
 interface CartItemProps {
     item: CartItemType;
     onUpdateQuantity: (productId: number, newQuantity: number) => void;
-    onRemoveItem: (productId: number) => void;
-    onEditNotes: () => void;
+    onRemove: (productId: number) => void;
+    onEditNotes: (productId: number) => void;
 }
 
-const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onEditNotes }) => {
-    const { product, quantity, notes } = item;
+const CartItem: React.FC<CartItemProps> = ({ item, onUpdateQuantity, onRemove, onEditNotes }) => {
+    const { product, quantity } = item;
+    const { formatCurrency } = useCurrency();
 
     return (
-        <div className="flex items-center justify-between bg-brand-dark p-3 rounded-lg">
-            <div className="flex items-center space-x-3 flex-1">
-                <img src={product.imageUrl} alt={product.name} className="w-12 h-12 object-cover rounded-md" />
-                <div className="flex-1">
-                    <p className="font-semibold text-sm text-brand-light">{product.name}</p>
-                    <p className="text-xs text-gray-400">${product.price.toFixed(2)}</p>
-                    {notes && <p className="text-xs text-brand-primary truncate mt-1">Note: {notes}</p>}
-                </div>
+        <div className="flex items-center gap-3 bg-brand-dark p-2 rounded-lg">
+            <img src={product.imageUrl} alt={product.name} className="w-16 h-16 rounded-md object-cover" />
+            <div className="flex-grow">
+                <p className="font-semibold text-sm text-brand-light truncate">{product.name}</p>
+                <p className="text-xs text-gray-400">{formatCurrency(product.price)}</p>
+                {item.notes && <p className="text-xs text-brand-primary italic truncate mt-1">Note: {item.notes}</p>}
             </div>
-            <div className="flex items-center space-x-3">
-                 <button 
-                    onClick={onEditNotes} 
-                    className={`p-1.5 rounded-full transition-colors ${notes ? 'text-brand-primary bg-brand-secondary' : 'text-gray-400 hover:bg-brand-secondary'}`}
-                    aria-label="Add or edit note"
+            <div className="flex items-center gap-2">
+                <button
+                    onClick={() => onUpdateQuantity(product.id, quantity - 1)}
+                    className="p-1 bg-brand-secondary rounded-full hover:bg-red-500 transition-colors"
                 >
-                    <NoteIcon className="w-4 h-4" />
-                 </button>
-                 <div className="flex items-center bg-brand-secondary rounded-full">
-                    <button onClick={() => onUpdateQuantity(product.id, quantity - 1)} className="p-1.5 text-gray-300 hover:text-white transition-colors">
-                        <MinusIcon className="w-4 h-4" />
-                    </button>
-                    <span className="px-2 text-sm font-semibold w-8 text-center">{quantity}</span>
-                    <button onClick={() => onUpdateQuantity(product.id, quantity + 1)} className="p-1.5 text-gray-300 hover:text-white transition-colors">
-                        <PlusIcon className="w-4 h-4" />
-                    </button>
-                </div>
-                <span className="font-bold text-brand-primary text-sm w-14 text-right">
-                    ${(product.price * quantity).toFixed(2)}
-                </span>
+                    <MinusIcon className="w-4 h-4 text-white" />
+                </button>
+                <span className="font-bold text-lg w-6 text-center">{quantity}</span>
+                <button
+                    onClick={() => onUpdateQuantity(product.id, quantity + 1)}
+                    disabled={quantity >= product.stock}
+                    className="p-1 bg-brand-secondary rounded-full hover:bg-green-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                    <PlusIcon className="w-4 h-4 text-white" />
+                </button>
+            </div>
+             <div className="flex flex-col gap-1.5">
+                <button onClick={() => onEditNotes(product.id)} className="text-gray-400 hover:text-brand-primary transition-colors">
+                    <NoteIcon className="w-5 h-5" />
+                </button>
+                 <button onClick={() => onRemove(product.id)} className="text-gray-400 hover:text-red-500 transition-colors">
+                    <TrashIcon className="w-5 h-5" />
+                </button>
             </div>
         </div>
     );

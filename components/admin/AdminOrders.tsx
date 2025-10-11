@@ -1,102 +1,75 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { useAppContext } from '../../contexts/AppContext';
+import { useCurrency } from '../../hooks/useCurrency';
 import type { Order } from '../../types';
-import { SearchIcon } from '../icons/SearchIcon';
 
-interface AdminOrdersProps {
-    onViewOrder: (order: Order) => void;
-}
-
-const AdminOrders: React.FC<AdminOrdersProps> = ({ onViewOrder }) => {
+const AdminOrders: React.FC = () => {
     const { orders } = useAppContext();
-    const [searchQuery, setSearchQuery] = useState('');
-    const [sort, setSort] = useState<{key: 'createdAt' | 'total', direction: 'asc' | 'desc'}>({ key: 'createdAt', direction: 'desc' });
-    
-    const filteredAndSortedOrders = useMemo(() => {
-        let filtered = orders;
+    const { formatCurrency } = useCurrency();
+    const [expandedOrderId, setExpandedOrderId] = useState<number | null>(null);
 
-        if (searchQuery.trim()) {
-            filtered = orders.filter(order => order.id.toLowerCase().includes(searchQuery.trim().toLowerCase()));
-        }
-        
-        return filtered.sort((a, b) => {
-            if (sort.key === 'createdAt') {
-                const valA = new Date(a.createdAt).getTime();
-                const valB = new Date(b.createdAt).getTime();
-                return sort.direction === 'asc' ? valA - valB : valB - valA;
-            } else { // sort by total
-                return sort.direction === 'asc' ? a.total - b.total : b.total - a.total;
-            }
-        });
-    }, [orders, searchQuery, sort]);
-
-    const handleSort = (key: 'createdAt' | 'total') => {
-        setSort(prev => ({
-            key,
-            direction: prev.key === key && prev.direction === 'desc' ? 'asc' : 'desc'
-        }));
-    }
-
-    const SortIndicator = ({ columnKey }: { columnKey: 'createdAt' | 'total' }) => {
-        if (sort.key !== columnKey) return null;
-        return sort.direction === 'desc' ? ' ↓' : ' ↑';
+    const toggleOrderDetails = (orderId: number) => {
+        setExpandedOrderId(prevId => (prevId === orderId ? null : orderId));
     };
-
 
     return (
         <div>
-            <div className="flex justify-between items-center mb-6">
-                <h2 className="text-3xl font-bold text-brand-light">Order History</h2>
-                <div className="relative w-full max-w-xs">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <SearchIcon className="w-5 h-5 text-gray-400" />
-                    </div>
-                    <input
-                        type="text"
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        placeholder="Search by Order ID..."
-                        className="w-full bg-brand-dark border border-brand-secondary text-brand-light placeholder-gray-400 text-sm rounded-lg focus:ring-brand-primary focus:border-brand-primary block pl-10 p-2.5 transition-colors"
-                        aria-label="Search orders"
-                    />
-                </div>
-            </div>
+            <h2 className="text-3xl font-bold text-brand-light mb-6">Order History</h2>
 
-             <div className="bg-brand-secondary rounded-lg shadow-lg overflow-hidden">
+            <div className="bg-brand-secondary rounded-lg shadow-lg overflow-hidden">
                 <div className="overflow-x-auto">
                     <table className="w-full text-sm text-left text-gray-300">
                         <thead className="text-xs text-brand-light uppercase bg-brand-dark">
                             <tr>
                                 <th scope="col" className="px-6 py-3">Order ID</th>
-                                <th scope="col" className="px-6 py-3 cursor-pointer" onClick={() => handleSort('createdAt')}>
-                                    Date <SortIndicator columnKey="createdAt" />
-                                </th>
-                                <th scope="col" className="px-6 py-3">Items</th>
+                                <th scope="col" className="px-6 py-3">Date</th>
                                 <th scope="col" className="px-6 py-3">Cashier</th>
-                                <th scope="col" className="px-6 py-3 cursor-pointer" onClick={() => handleSort('total')}>
-                                    Total <SortIndicator columnKey="total" />
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-right">Actions</th>
+                                <th scope="col" className="px-6 py-3">Items</th>
+                                <th scope="col" className="px-6 py-3">Total</th>
+                                <th scope="col" className="px-6 py-3"></th>
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredAndSortedOrders.map(order => (
-                                <tr key={order.id} className="border-b border-brand-dark hover:bg-brand-dark/50">
-                                    <td className="px-6 py-4 font-mono text-xs">{order.id.substring(0, 13)}...</td>
-                                    <td className="px-6 py-4">{new Date(order.createdAt).toLocaleString()}</td>
-                                    <td className="px-6 py-4">{order.items.reduce((sum, i) => sum + i.quantity, 0)}</td>
-                                    <td className="px-6 py-4">{order.cashier}</td>
-                                    <td className="px-6 py-4 font-semibold">${order.total.toFixed(2)}</td>
-                                    <td className="px-6 py-4 text-right">
-                                        <button onClick={() => onViewOrder(order)} className="font-medium text-brand-primary hover:underline">View Receipt</button>
-                                    </td>
-                                </tr>
+                            {orders.map(order => (
+                                <React.Fragment key={order.id}>
+                                    <tr className="border-b border-brand-dark hover:bg-brand-dark/50 cursor-pointer" onClick={() => toggleOrderDetails(order.id)}>
+                                        <td className="px-6 py-4 font-medium text-white">#{order.id}</td>
+                                        <td className="px-6 py-4">{new Date(order.createdAt).toLocaleString()}</td>
+                                        <td className="px-6 py-4">{order.cashier}</td>
+                                        <td className="px-6 py-4">{order.items.length}</td>
+                                        <td className="px-6 py-4 font-bold">{formatCurrency(order.total)}</td>
+                                        <td className="px-6 py-4 text-right">
+                                            <span className="text-xs text-brand-primary">{expandedOrderId === order.id ? 'Hide Details' : 'Show Details'}</span>
+                                        </td>
+                                    </tr>
+                                    {expandedOrderId === order.id && (
+                                        <tr className="bg-brand-dark">
+                                            <td colSpan={6} className="p-4">
+                                                <div className="p-4 bg-brand-secondary rounded-md">
+                                                    <h4 className="font-bold mb-2">Order #{order.id} Details</h4>
+                                                    <ul>
+                                                        {order.items.map(item => (
+                                                            <li key={item.productId} className="flex justify-between text-xs py-1 border-b border-brand-dark/50">
+                                                                <span>{item.quantity} x {item.productName}</span>
+                                                                <span>{formatCurrency(item.price * item.quantity)}</span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                    <div className="mt-2 pt-2 border-t border-brand-dark/50 text-xs space-y-1">
+                                                        <p className="flex justify-between"><span>Subtotal:</span> <span>{formatCurrency(order.subtotal)}</span></p>
+                                                        <p className="flex justify-between"><span>Discount:</span> <span>-{formatCurrency(order.discountAmount)}</span></p>
+                                                         <p className="flex justify-between"><span>Tax:</span> <span>{formatCurrency(order.tax)}</span></p>
+                                                        <p className="flex justify-between font-bold text-sm"><span>Total:</span> <span>{formatCurrency(order.total)}</span></p>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    )}
+                                </React.Fragment>
                             ))}
                         </tbody>
                     </table>
-                     {filteredAndSortedOrders.length === 0 && (
-                        <p className="text-center text-gray-400 py-8">No orders found.</p>
-                    )}
+                     {orders.length === 0 && <p className="text-center text-gray-400 py-8">No orders have been placed yet.</p>}
                 </div>
             </div>
         </div>

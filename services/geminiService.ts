@@ -7,10 +7,12 @@ if (!API_KEY) {
   console.warn("API_KEY for Gemini is not set. AI features will not work.");
 }
 
-const ai = new GoogleGenAI({ apiKey: API_KEY });
+// FIX: Conditionally initialize GoogleGenAI to prevent crashes when API_KEY is not set.
+const ai = API_KEY ? new GoogleGenAI({ apiKey: API_KEY }) : null;
 
 export const generateProductDescription = async (productName: string): Promise<string> => {
-  if (!API_KEY) {
+  // FIX: Check for the existence of the 'ai' instance.
+  if (!ai) {
     return "AI features are disabled. Please configure the API key.";
   }
   
@@ -28,4 +30,3 @@ export const generateProductDescription = async (productName: string): Promise<s
     throw new Error("Failed to generate description from Gemini API.");
   }
 };
-   
