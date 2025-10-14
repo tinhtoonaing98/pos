@@ -14,7 +14,7 @@ import { ShoppingCartIcon } from '../components/icons/ShoppingCartIcon';
 import { useCurrency } from '../hooks/useCurrency';
 
 const PosView: React.FC = () => {
-    const { products, categories, addOrder, currentUser } = useAppContext();
+    const { products, categories, addOrder, currentUser, settings } = useAppContext();
     const { formatCurrency } = useCurrency();
 
     const [sales, setSales] = useState<Sale[]>([{ id: 1, name: 'Order 1', items: [], discountType: 'none', discountValue: 0 }]);
@@ -173,7 +173,7 @@ const PosView: React.FC = () => {
         
         discAmount = Math.max(0, Math.min(sub, discAmount));
         const subtotalAfterDiscount = sub - discAmount;
-        const taxAmount = subtotalAfterDiscount * 0.08;
+        const taxAmount = subtotalAfterDiscount * (settings.taxRate / 100);
         
         return { 
             subtotal: sub, 
@@ -181,7 +181,7 @@ const PosView: React.FC = () => {
             tax: taxAmount, 
             total: subtotalAfterDiscount + taxAmount 
         };
-    }, [activeSale]);
+    }, [activeSale, settings.taxRate]);
 
     const handleApplyDiscount = useCallback((type: Sale['discountType'], value: number) => {
         setSales(prevSales =>
@@ -289,6 +289,7 @@ const PosView: React.FC = () => {
                             subtotal={subtotal}
                             discountAmount={discountAmount}
                             tax={tax}
+                            taxRate={settings.taxRate}
                             total={total}
                             onOpenDiscountModal={() => setDiscountModalOpen(true)}
                             onRemoveDiscount={handleRemoveDiscount}
@@ -315,6 +316,7 @@ const PosView: React.FC = () => {
                         subtotal={subtotal}
                         discountAmount={discountAmount}
                         tax={tax}
+                        taxRate={settings.taxRate}
                         total={total}
                         onOpenDiscountModal={() => setDiscountModalOpen(true)}
                         onRemoveDiscount={handleRemoveDiscount}

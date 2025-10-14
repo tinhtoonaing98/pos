@@ -7,13 +7,20 @@ const AdminSettings: React.FC = () => {
     const handleCurrencyChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
         updateSettings({ currencyCode: e.target.value });
     };
+    
+    const handleTaxRateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const value = parseFloat(e.target.value);
+        if (!isNaN(value)) {
+            updateSettings({ taxRate: value });
+        }
+    };
 
     return (
         <div>
             <h2 className="text-3xl font-bold text-brand-light mb-6">Settings</h2>
             <div className="bg-brand-secondary rounded-lg shadow-lg p-6 max-w-md">
                  <h3 className="text-xl font-bold text-brand-light mb-4">General Settings</h3>
-                 <div className="space-y-4">
+                 <div className="space-y-6">
                     <div>
                         <label htmlFor="currency-select" className="block text-sm font-medium text-gray-300 mb-1">
                             Currency
@@ -32,6 +39,23 @@ const AdminSettings: React.FC = () => {
                         </select>
                         <p className="text-xs text-gray-400 mt-2">
                             This will change the currency symbol and formatting across the entire application.
+                        </p>
+                    </div>
+                    <div>
+                        <label htmlFor="tax-rate-input" className="block text-sm font-medium text-gray-300 mb-1">
+                            Sales Tax Rate (%)
+                        </label>
+                         <input
+                            id="tax-rate-input"
+                            type="number"
+                            value={settings.taxRate}
+                            onChange={handleTaxRateChange}
+                            className="w-full bg-brand-dark border border-brand-secondary text-brand-light placeholder-gray-400 text-sm rounded-lg focus:ring-brand-primary focus:border-brand-primary block p-2.5 transition-colors"
+                            min="0"
+                            step="0.01"
+                        />
+                        <p className="text-xs text-gray-400 mt-2">
+                            This tax rate will be applied to all future sales.
                         </p>
                     </div>
                  </div>

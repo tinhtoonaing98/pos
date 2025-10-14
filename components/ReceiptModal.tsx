@@ -15,7 +15,10 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, order }) =
     
     if (!isOpen || !order) return null;
 
-    const currentBranch = branches[0]; // Assuming first branch for simplicity
+    const currentBranch = branches.find(b => b.id === order.branchId) ?? branches[0];
+
+    const subtotalAfterDiscount = order.subtotal - order.discountAmount;
+    const taxRate = subtotalAfterDiscount > 0 ? (order.tax / subtotalAfterDiscount) * 100 : 0;
 
     return (
         <div className="fixed inset-0 bg-black bg-opacity-80 flex items-center justify-center z-50 p-4">
@@ -43,7 +46,7 @@ const ReceiptModal: React.FC<ReceiptModalProps> = ({ isOpen, onClose, order }) =
                 <div className="py-2 text-sm space-y-1">
                     <div className="flex justify-between"><span>Subtotal</span><span>{formatCurrency(order.subtotal)}</span></div>
                     {order.discountAmount > 0 && <div className="flex justify-between"><span>Discount</span><span>-{formatCurrency(order.discountAmount)}</span></div>}
-                    <div className="flex justify-between"><span>Tax</span><span>{formatCurrency(order.tax)}</span></div>
+                    <div className="flex justify-between"><span>Tax ({taxRate.toFixed(2)}%)</span><span>{formatCurrency(order.tax)}</span></div>
                 </div>
 
                 <div className="border-t border-dashed border-gray-400 pt-2 text-lg font-bold flex justify-between">

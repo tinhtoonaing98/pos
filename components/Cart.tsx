@@ -20,6 +20,7 @@ interface CartProps {
     subtotal: number;
     discountAmount: number;
     tax: number;
+    taxRate: number;
     total: number;
     onOpenDiscountModal: () => void;
     onRemoveDiscount: () => void;
@@ -40,6 +41,7 @@ const Cart: React.FC<CartProps> = ({
     subtotal,
     discountAmount,
     tax,
+    taxRate,
     total,
     onOpenDiscountModal,
     onRemoveDiscount,
@@ -111,7 +113,7 @@ const Cart: React.FC<CartProps> = ({
                         </div>
                     </div>
                     <div className="flex justify-between text-gray-300">
-                        <span>Tax (8%)</span>
+                        <span>Tax ({taxRate}%)</span>
                         <span>{formatCurrency(tax)}</span>
                     </div>
                     <div className="flex justify-between text-brand-light font-bold text-lg">

@@ -3,6 +3,7 @@ import { useAppContext } from '../contexts/AppContext';
 import { LogoutIcon } from './icons/LogoutIcon';
 import { AdminViewIcon, PosViewIcon } from './icons/AdminIcons';
 import { MenuIcon } from './icons/MenuIcon';
+import { LOGO_URL } from '../constants';
 
 interface HeaderProps {
     onMenuClick?: () => void;
@@ -23,7 +24,10 @@ const Header: React.FC<HeaderProps> = ({ onMenuClick }) => {
                          </button>
                      )}
                      {adminView === 'pos' && (
-                        <h1 className="text-2xl font-bold text-brand-primary tracking-wider">POS System</h1>
+                         <div className="flex items-center gap-2">
+                            <img src={LOGO_URL} alt="Htoo Myat Logo" className="w-10 h-10 rounded-full" />
+                            <h1 className="text-xl font-bold text-brand-light tracking-wider">Htoo Myat</h1>
+                        </div>
                      )}
                 </div>
                 

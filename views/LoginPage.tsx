@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../contexts/AppContext';
+import { LOGO_URL } from '../constants';
 
 const LoginPage: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -19,11 +20,12 @@ const LoginPage: React.FC = () => {
 
     return (
         <div className="min-h-screen bg-brand-dark flex items-center justify-center font-sans">
-            <div className="bg-brand-secondary p-8 rounded-lg shadow-2xl w-full max-w-sm">
-                <h1 className="text-3xl font-bold text-brand-primary tracking-wider text-center mb-6">POS System Login</h1>
+            <div className="bg-brand-secondary p-8 rounded-lg shadow-2xl w-full max-w-sm text-center">
+                <img src={LOGO_URL} alt="Htoo Myat Logo" className="w-24 h-24 mx-auto mb-4 rounded-full" />
+                <h1 className="text-3xl font-bold text-brand-light tracking-wider mb-6">Htoo Myat Login</h1>
                 <form onSubmit={handleLogin}>
                     <div className="mb-4">
-                        <label className="block text-brand-light text-sm font-bold mb-2" htmlFor="username">
+                        <label className="block text-brand-light text-sm font-bold mb-2 text-left" htmlFor="username">
                             Username
                         </label>
                         <input
@@ -38,7 +40,7 @@ const LoginPage: React.FC = () => {
                         />
                     </div>
                     <div className="mb-6">
-                        <label className="block text-brand-light text-sm font-bold mb-2" htmlFor="password">
+                        <label className="block text-brand-light text-sm font-bold mb-2 text-left" htmlFor="password">
                             Password
                         </label>
                         <input

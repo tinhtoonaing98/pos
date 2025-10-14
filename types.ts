@@ -86,4 +86,5 @@ export interface Currency {
 
 export interface Settings {
     currencyCode: string; // e.g., 'USD'
+    taxRate: number; // e.g., 8 for 8%
 }
