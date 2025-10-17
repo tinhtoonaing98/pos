@@ -10,38 +10,32 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      # ---------- Repo ----------
+      # ----- Repo -----
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Print repo tree (top)
+      - name: Show repo root
         run: |
           pwd
           ls -la
-          echo "---- package.json ----"
-          test -f package.json && cat package.json || echo "package.json not found"
-          echo "---- capacitor config ----"
-          (ls capacitor.config.* || true)
 
-      # ---------- Node / deps ----------
+      # ----- Node / deps (NO CACHE because there's no lockfile) -----
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
 
-      - name: Install dependencies
+      - name: Install dependencies (supports no lockfile)
         run: |
           if [ -f package-lock.json ]; then
-            echo "Found package-lock.json → using npm ci"
+            echo "Found package-lock.json -> npm ci"
             npm ci
           else
-            echo "No lockfile → using npm install"
+            echo "No lockfile -> npm install"
             npm install
           fi
 
-
-      # ---------- Build web ----------
+      # ----- Build web -----
       - name: Build web bundle
         run: |
           if npm run | grep -q " build"; then
@@ -49,9 +43,8 @@ jobs:
           else
             echo "No 'build' script found in package.json"; exit 1
           fi
-          echo "dist contents:"; (ls -la dist || true)
 
-      # ---------- Java / Android SDK ----------
+      # ----- Java / Android SDK -----
       - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
@@ -61,33 +54,30 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # ---------- Capacitor ----------
-      - name: Ensure Capacitor CLI available
+      # ----- Capacitor / Android project -----
+      - name: Ensure Capacitor CLI
         run: npx cap --version
 
-      # If android/ isn't committed, create it on CI so build can continue.
+      # If android/ isn't committed, create it so build can proceed
       - name: Ensure android project exists
         run: |
           if [ ! -d "android" ]; then
-            echo "android/ not found; creating with Capacitor…"
+            echo "android/ not found; attempting to create with Capacitor…"
+            # capacitor.config.* must already exist in the repo
             npx cap add android
           else
-            echo "android/ exists; will sync assets."
+            echo "android/ exists."
           fi
 
       - name: Sync web to Android
         run: npx cap sync android
 
-      - name: Show android tree
+      - name: Verify gradlew and grant execute perm
         run: |
-          ls -la android || true
-          ls -la android/app || true
-          test -f android/gradlew && echo "gradlew present" || (echo "gradlew missing"; exit 1)
+          test -f android/gradlew || (echo "gradlew missing in android/ — did cap add android succeed?" && exit 1)
+          chmod +x android/gradlew
 
-      # ---------- Build APK ----------
-      - name: Grant gradlew execute perm
-        run: chmod +x android/gradlew
-
+      # ----- Build APK -----
       - name: Assemble Debug APK
         working-directory: android
         run: ./gradlew --no-daemon assembleDebug --stacktrace
@@ -97,7 +87,7 @@ jobs:
           ls -la android/app/build/outputs/apk/debug || true
           test -f android/app/build/outputs/apk/debug/app-debug.apk || (echo "APK not found"; exit 1)
 
-      # ---------- Artifact (v4) ----------
+      # ----- Artifact (v4) -----
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
