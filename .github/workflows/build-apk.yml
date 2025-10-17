@@ -30,13 +30,16 @@ jobs:
           node-version: 20
           cache: 'npm'
 
-      - name: Install dependencies (ci or i)
+      - name: Install dependencies
         run: |
           if [ -f package-lock.json ]; then
-            npm ci || (echo "npm ci failed, falling back to npm i" && npm i)
+            echo "Found package-lock.json → using npm ci"
+            npm ci
           else
-            npm i
+            echo "No lockfile → using npm install"
+            npm install
           fi
+
 
       # ---------- Build web ----------
       - name: Build web bundle
