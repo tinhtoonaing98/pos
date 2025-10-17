@@ -21,10 +21,8 @@ jobs:
       - name: Install dependencies (supports no lockfile)
         run: |
           if [ -f package-lock.json ]; then
-            echo "Found package-lock.json -> npm ci"
             npm ci
           else
-            echo "No lockfile -> npm install"
             npm install
           fi
 
@@ -40,9 +38,12 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Ensure Capacitor CLI
-        run: npx cap --version
+      - name: Verify Capacitor + Android deps
+        run: |
+          npx cap --version
+          node -e "require.resolve('@capacitor/android')" || (echo '@capacitor/android not installed' && exit 1)
 
+      # Create android/ if missing
       - name: Ensure android project exists
         run: |
           if [ ! -d "android" ]; then
