@@ -26,6 +26,12 @@ jobs:
             npm install
           fi
 
+      - name: Ensure Capacitor Android platform is available
+        run: |
+          node -e "require.resolve('@capacitor/android')" \
+            || (echo '@capacitor/android not found → installing…' \
+            && npm install @capacitor/android@^6 --no-audit --no-fund)
+
       - name: Build web bundle
         run: npm run build
 
@@ -38,17 +44,13 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Verify Capacitor + Android deps
-        run: |
-          npx cap --version
-          node -e "require.resolve('@capacitor/android')" || (echo '@capacitor/android not installed' && exit 1)
-
-      # Create android/ if missing
       - name: Ensure android project exists
         run: |
           if [ ! -d "android" ]; then
             echo "android/ not found; creating with Capacitor…"
-            npx cap add android
+            npx cap add android --yes
+          else
+            echo "android/ exists."
           fi
 
       - name: Sync web to Android
