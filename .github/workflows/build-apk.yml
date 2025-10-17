@@ -1,39 +1,56 @@
-name: Build APK
+name: Build APK (Capacitor)
 
 on:
-  workflow_dispatch:      # allow manual runs
+  workflow_dispatch:        # Manual run button
   push:
-    branches: [ main ]    # build on pushes to main
+    branches: [ main ]      # Auto-build on pushes to main
 
 jobs:
   build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install deps
+        run: npm ci
+
+      - name: Build web
+        run: npm run build
+
+      - name: Setup Java 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
 
-      - name: Set up Android SDK
+      - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      # If your Gradle wrapper is at project root use ./gradlew instead.
-      - name: Grant execute permission for Gradle wrapper
+      # If android/ is committed (recommended), this just syncs web assets.
+      # If you did NOT commit android/, uncomment the two lines below to generate it on CI:
+      # - name: Add Android platform (if not committed)
+      #   run: npx cap add android
+      - name: Sync web to Android project
+        run: npx cap sync android
+
+      - name: Gradle wrapper permission
         run: chmod +x android/gradlew
 
-      - name: Build Debug APK
+      - name: Assemble Debug APK
         working-directory: android
         run: ./gradlew assembleDebug
 
-      - name: Upload APK artifact (v4)
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          retention-days: 7          # auto-delete after 7 days
+          retention-days: 7
           if-no-files-found: error
