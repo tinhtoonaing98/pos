@@ -1,5 +1,5 @@
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+const genAI = new GoogleGenerativeAI(import.meta.env.VITE_GEMINI_API_KEY || "");
 
 const API_KEY = process.env.API_KEY;
 
