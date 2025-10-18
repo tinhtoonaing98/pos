@@ -1,21 +1,42 @@
 name: Build Android APK
-on: [push, workflow_dispatch]
+on:
+  workflow_dispatch:
+  push:
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
       - uses: actions/checkout@v4
-      - name: Set up JDK
+
+      - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '17'
-      - name: Make Gradle executable
+
+      # Install Gradle (no wrapper required yet)
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.7   # compatible with AGP 8.5.x
+
+      # Generate wrapper into the repo workspace
+      - name: Generate Gradle wrapper
+        run: gradle wrapper --gradle-version 8.7
+
+      - name: Make wrapper executable (Linux)
         run: chmod +x ./gradlew
+
+      # (Optional but helpful) accept Android SDK licenses
+      - name: Accept Android SDK licenses
+        run: yes | sdkmanager --licenses
+
       - name: Build debug APK
-        run: ./gradlew assembleDebug
-      - name: Upload APK
+        run: ./gradlew assembleDebug --no-daemon
+
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-debug-apk
