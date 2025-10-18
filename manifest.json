@@ -1,0 +1,15 @@
+{
+  "short_name": "Htoo Myat POS",
+  "name": "Htoo Myat Point of Sale",
+  "icons": [
+    {
+      "src": "https://www.gstatic.com/images/branding/product/1x/pos_512dp.png",
+      "type": "image/png",
+      "sizes": "512x512"
+    }
+  ],
+  "start_url": ".",
+  "display": "standalone",
+  "theme_color": "#3a3d63",
+  "background_color": "#3a3d63"
+}
