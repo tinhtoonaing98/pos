@@ -1,4 +1,4 @@
-name: Build APK (WebView + Vite)
+name: Build APK (WebView + Web App)
 
 on:
   workflow_dispatch:
@@ -16,14 +16,53 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '20'
+          cache: 'npm'
 
-      - name: Install and build web app
+      # ---- Install deps (auto-detect package manager) ----
+      - name: Install dependencies
         run: |
-          npm ci
-          npm run build
+          if [ -f pnpm-lock.yaml ]; then
+            echo "Using pnpm"
+            corepack enable
+            pnpm install --frozen-lockfile
+          elif [ -f yarn.lock ]; then
+            echo "Using yarn"
+            yarn install --frozen-lockfile
+          elif [ -f package-lock.json ] || [ -f npm-shrinkwrap.json ]; then
+            echo "Using npm ci"
+            npm ci
+          else
+            echo "No lockfile found → npm install"
+            npm install --no-audit --no-fund
+          fi
 
+      - name: Build web app
+        run: |
+          if [ -f package.json ]; then
+            if npm run | grep -q " build"; then
+              npm run build
+            elif command -v yarn >/dev/null 2>&1; then
+              yarn build
+            elif command -v pnpm >/dev/null 2>&1; then
+              pnpm build
+            else
+              echo "No build script found"; exit 1
+            fi
+          else
+            echo "package.json not found at repo root"; exit 1
+          fi
+
+      # ---- Copy dist into Android assets ----
       - name: Prepare Android assets
         run: |
+          if [ ! -d android ]; then
+            echo "Expected Android project in ./android but not found."
+            echo "Create android/ using the WebView project I provided."
+            exit 1
+          fi
+          if [ ! -d dist ]; then
+            echo "Web build output ./dist not found"; exit 1
+          fi
           rm -rf android/app/src/main/assets/www
           mkdir -p android/app/src/main/assets/www
           cp -r dist/* android/app/src/main/assets/www/
@@ -34,7 +73,7 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      # Use a managed Gradle (no wrapper required)
+      # Use managed Gradle (no wrapper required)
       - name: Set up Gradle 8.7
         uses: gradle/actions/setup-gradle@v3
         with:
