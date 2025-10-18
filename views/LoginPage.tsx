@@ -34,7 +34,7 @@ const LoginPage: React.FC = () => {
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
                             className="w-full bg-brand-dark border border-brand-secondary text-brand-light placeholder-gray-400 text-sm rounded-lg focus:ring-brand-primary focus:border-brand-primary block p-2.5 transition-colors"
-                            placeholder="admin or user"
+                            placeholder="username"
                             autoComplete="username"
                             required
                         />
@@ -49,7 +49,7 @@ const LoginPage: React.FC = () => {
                             value={password}
                             onChange={(e) => setPassword(e.target.value)}
                             className="w-full bg-brand-dark border border-brand-secondary text-brand-light placeholder-gray-400 text-sm rounded-lg focus:ring-brand-primary focus:border-brand-primary block p-2.5 transition-colors"
-                            placeholder="admin123 or user123"
+                            placeholder="password"
                             autoComplete="current-password"
                             required
                         />
