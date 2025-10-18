@@ -22,7 +22,7 @@ const LoginPage: React.FC = () => {
         <div className="min-h-screen bg-brand-dark flex items-center justify-center font-sans">
             <div className="bg-brand-secondary p-8 rounded-lg shadow-2xl w-full max-w-sm text-center">
                 <img src={LOGO_URL} alt="Htoo Myat Logo" className="w-24 h-24 mx-auto mb-4 rounded-full" />
-                <h1 className="text-3xl font-bold text-brand-light tracking-wider mb-6">Htoo Myat Login</h1>
+                <h1 className="text-3xl font-bold text-brand-light tracking-wider mb-6">Htoo Myat POS</h1>
                 <form onSubmit={handleLogin}>
                     <div className="mb-4">
                         <label className="block text-brand-light text-sm font-bold mb-2 text-left" htmlFor="username">

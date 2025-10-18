@@ -37,8 +37,8 @@ const CheckoutModal: React.FC<CheckoutModalProps> = ({ isOpen, onClose, cartItem
 
                 <div className="space-y-2 text-md border-t border-b border-brand-dark py-3 mb-4">
                     <div className="flex justify-between text-gray-300"><span>Subtotal</span><span>{formatCurrency(subtotal)}</span></div>
-                    {discountAmount > 0 && <div className="flex justify-between text-green-400"><span>Discount</span><span>-{formatCurrency(discountAmount)}</span></div>}
                     <div className="flex justify-between text-gray-300"><span>Tax</span><span>{formatCurrency(tax)}</span></div>
+                    {discountAmount > 0 && <div className="flex justify-between text-green-400"><span>Discount</span><span>-{formatCurrency(discountAmount)}</span></div>}
                     <div className="flex justify-between text-brand-light font-bold text-xl"><span>Total</span><span>{formatCurrency(total)}</span></div>
                 </div>
 

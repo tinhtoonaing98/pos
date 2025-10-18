@@ -8,9 +8,10 @@ interface DiscountModalProps {
     onClose: () => void;
     onApplyDiscount: (type: Sale['discountType'], value: number) => void;
     currentSubtotal: number;
+    taxRate: number;
 }
 
-const DiscountModal: React.FC<DiscountModalProps> = ({ isOpen, onClose, onApplyDiscount, currentSubtotal }) => {
+const DiscountModal: React.FC<DiscountModalProps> = ({ isOpen, onClose, onApplyDiscount, currentSubtotal, taxRate }) => {
     const [type, setType] = useState<Sale['discountType']>('percentage');
     const [value, setValue] = useState('');
     const { formatCurrency } = useCurrency();
@@ -31,6 +32,18 @@ const DiscountModal: React.FC<DiscountModalProps> = ({ isOpen, onClose, onApplyD
         }
         return numValue;
     }, [type, value, currentSubtotal]);
+
+    const effectiveDiscountAmount = useMemo(() => {
+        return Math.min(discountAmount, currentSubtotal);
+    }, [discountAmount, currentSubtotal]);
+
+    const taxAmount = useMemo(() => {
+        return currentSubtotal * (taxRate / 100);
+    }, [currentSubtotal, taxRate]);
+
+    const newTotal = useMemo(() => {
+        return Math.max(0, currentSubtotal + taxAmount - effectiveDiscountAmount);
+    }, [currentSubtotal, taxAmount, effectiveDiscountAmount]);
 
     const handleApply = () => {
         const numValue = parseFloat(value);
@@ -64,8 +77,9 @@ const DiscountModal: React.FC<DiscountModalProps> = ({ isOpen, onClose, onApplyD
 
                 <div className="mt-4 text-center text-sm text-gray-400">
                     <p>Subtotal: {formatCurrency(currentSubtotal)}</p>
-                    <p className="text-green-400">Discount: -{formatCurrency(discountAmount)}</p>
-                    <p className="font-bold text-brand-light">New Total (before tax): {formatCurrency(Math.max(0, currentSubtotal - discountAmount))}</p>
+                    <p>Tax ({taxRate}%): +{formatCurrency(taxAmount)}</p>
+                    <p className="text-green-400">Discount: -{formatCurrency(effectiveDiscountAmount)}</p>
+                    <p className="font-bold text-brand-light">New Total: {formatCurrency(newTotal)}</p>
                 </div>
 
                 <div className="flex gap-4 mt-6">

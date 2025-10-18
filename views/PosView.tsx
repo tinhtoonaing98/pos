@@ -164,6 +164,9 @@ const PosView: React.FC = () => {
         const currentItems = activeSale?.items ?? [];
         const sub = currentItems.reduce((acc, item) => acc + item.product.price * item.quantity, 0);
 
+        // Tax is calculated on the subtotal before discount
+        const taxAmount = sub * (settings.taxRate / 100);
+
         let discAmount = 0;
         if (activeSale?.discountType === 'percentage') {
             discAmount = sub * (activeSale.discountValue / 100);
@@ -171,15 +174,17 @@ const PosView: React.FC = () => {
             discAmount = activeSale.discountValue;
         }
         
+        // Ensure discount doesn't exceed the subtotal
         discAmount = Math.max(0, Math.min(sub, discAmount));
-        const subtotalAfterDiscount = sub - discAmount;
-        const taxAmount = subtotalAfterDiscount * (settings.taxRate / 100);
+        
+        // Total is subtotal + tax, then discount is applied
+        const finalTotal = sub + taxAmount - discAmount;
         
         return { 
             subtotal: sub, 
             discountAmount: discAmount,
             tax: taxAmount, 
-            total: subtotalAfterDiscount + taxAmount 
+            total: Math.max(0, finalTotal)
         };
     }, [activeSale, settings.taxRate]);
 
@@ -365,6 +370,7 @@ const PosView: React.FC = () => {
                 onClose={() => setDiscountModalOpen(false)}
                 onApplyDiscount={handleApplyDiscount}
                 currentSubtotal={subtotal}
+                taxRate={settings.taxRate}
             />
 
             <ReceiptModal

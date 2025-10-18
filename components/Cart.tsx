@@ -99,6 +99,10 @@ const Cart: React.FC<CartProps> = ({
                         <span>Subtotal</span>
                         <span>{formatCurrency(subtotal)}</span>
                     </div>
+                    <div className="flex justify-between text-gray-300">
+                        <span>Tax ({taxRate}%)</span>
+                        <span>{formatCurrency(tax)}</span>
+                    </div>
                     <div className="flex justify-between text-gray-300 items-center">
                         <span>Discount</span>
                         <div className="flex items-center gap-2">
@@ -111,10 +115,6 @@ const Cart: React.FC<CartProps> = ({
                                 -{formatCurrency(discountAmount)}
                             </span>
                         </div>
-                    </div>
-                    <div className="flex justify-between text-gray-300">
-                        <span>Tax ({taxRate}%)</span>
-                        <span>{formatCurrency(tax)}</span>
                     </div>
                     <div className="flex justify-between text-brand-light font-bold text-lg">
                         <span>Total</span>
